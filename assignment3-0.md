@@ -93,6 +93,26 @@ const ProfileScreen: React.FC = () => {
 };
 ```
 
+#### Missing dependencies for hooks
+
+Hooks must have all dependencies used in the hook listed in the array, no more, no less. If there are no dependencies, there should be an empty array. Supplying no array means everything becomes a dependency (which is rarely the desired result).
+
+###### Bad
+
+```tsx
+useEffect(() => {
+  dispatch(action.getProfile());
+}, []);
+```
+
+###### Good
+
+```tsx
+useEffect(() => {
+  dispatch(action.getProfile());
+}, [dispatch]);
+```
+
 #### Manually assembling DOM
 
 Students should inline assemble DOM elements whenever possible rather than building the DOM in multiple pieces.
