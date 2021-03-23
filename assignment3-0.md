@@ -6,29 +6,350 @@
 
 Components should have standard doc comments that explain what the component is as well as what the props are
 
+###### Bad
+
+```tsx
+const Repository: React.FC<{ repo: Repo }> = ({ repo }) => {
+  return (
+    <View>
+      <Text>{repo.name}</Text>
+    </View>
+  );
+};
+```
+
+###### Good
+
+```tsx
+/**
+ * A component that renders a repository.
+ *
+ * @param repo The repository from the GitHub API
+ */
+const Repository: React.FC<{ repo: Repo }> = ({ repo }) => {
+  return (
+    <View>
+      <Text>{repo.name}</Text>
+    </View>
+  );
+};
+```
+
 #### Use functional components instead of class components
 
 Students should be using functional components whenever possible.
+
+###### Bad
+
+```tsx
+class ProfileScreen extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      profile: null,
+    };
+  }
+
+  componentDidMount() {
+    (async () => {
+      const profile = await getProfile();
+
+      this.setState(() => ({
+        profile,
+      }));
+    })();
+  }
+
+  render() {
+    return (
+      <View>
+        <Text>{profile?.username ?? "Loading..."}</Text>
+      </View>
+    );
+  }
+}
+```
+
+###### Good
+
+```tsx
+const ProfileScreen: React.FC = () => {
+  const [profile, setProfile] = React.useState<Profile | undefined>();
+
+  React.useEffect(() => {
+    (async () => {
+      const profileData = await getProfile();
+
+      setProfile(() => profileData);
+    })();
+  }, []);
+
+  return (
+    <View>
+      <Text>{profile?.username ?? "Loading..."}</Text>
+    </View>
+  );
+};
+```
+
+#### Manually assembling DOM
+
+Students should inline assemble DOM elements whenever possible rather than building the DOM in multiple pieces.
+
+###### Bad
+
+```tsx
+const ProfileScreen: React.FC = () => {
+  const [profile, setProfile] = React.useState<Profile | undefined>();
+
+  React.useEffect(() => {
+    (async () => {
+      const profileData = await getProfile();
+
+      setProfile(() => profileData);
+    })();
+  }, []);
+
+  const repositories = [];
+
+  profile?.repositories.forEach((repo) => {
+    repositories.push(<Repository repo={repo} />);
+  });
+
+  return (
+    <View>
+      <Text>{profile?.username ?? "Loading..."}</Text>
+
+      {repositories}
+    </View>
+  );
+};
+```
+
+###### Good
+
+```tsx
+const ProfileScreen: React.FC = () => {
+  const [profile, setProfile] = React.useState<Profile | undefined>();
+
+  React.useEffect(() => {
+    (async () => {
+      const profileData = await getProfile();
+
+      setProfile(() => profileData);
+    })();
+  }, []);
+
+  return (
+    <View>
+      <Text>{profile?.username ?? "Loading..."}</Text>
+
+      {profile?.repositories.map((repo) => (
+        <Repository key={repo.id} repo={repo} />
+      ))}
+    </View>
+  );
+};
+```
 
 #### Spread props inside the component declaration
 
 Students should spread their props inside of the functional component declaration. This makes the definition more clear, allows for default values, and avoids constantly accessing the props variable. This is especially crucial if they are not using TypeScript.
 
+###### Bad
+
+```tsx
+const ProfileScreen = (props) => {
+  const openPage = (page: string) => {
+    props.navigation.navigate(page);
+  };
+
+  return (
+    <View>
+      <Text onPress={() => openPage("Repositories")}>Repositories</Text>
+    </View>
+  );
+};
+```
+
+###### Good
+
+```tsx
+const ProfileScreen = ({ navigation }) => {
+  const openPage = (page: string) => {
+    navigation.navigate(page);
+  };
+
+  return (
+    <View>
+      <Text onPress={() => openPage("Repositories")}>Repositories</Text>
+    </View>
+  );
+};
+```
+
 #### Do not write API requests directly in components
 
 Students should never write their API requests directly inside their components. The API request shoud be extracted into a helper function in a separate file and imported into the component file. If you see a student calling `fetch` directly in the component, chances are they need to improve their decomposition.
+
+###### Bad
+
+```tsx
+const ProfileScreen: React.FC = () => {
+  const [profile, setProfile] = React.useState<Profile | undefined>();
+
+  React.useEffect(() => {
+    (async () => {
+      const res = await fetch("http....");
+      const profileData = await res.json();
+
+      setProfile(profileData);
+    })();
+  }, []);
+
+  return (
+    <View>
+      <Text>{profile?.username ?? "Loading..."}</Text>
+    </View>
+  );
+};
+```
+
+###### Good
+
+```tsx
+const ProfileScreen: React.FC = () => {
+  const [profile, setProfile] = React.useState<Profile | undefined>();
+
+  React.useEffect(() => {
+    (async () => {
+      const profileData = await getProfile();
+
+      setProfile(profileData);
+    })();
+  }, []);
+
+  return (
+    <View>
+      <Text>{profile?.username ?? "Loading..."}</Text>
+    </View>
+  );
+};
+```
+
+###### Good
 
 #### Do not use global variables as an alternative to state
 
 Students should not store stateful data in globals that are imported into components. This is a very severe violation of the fundamental principles of React and should be worth decomposition points proportional to the violation's severity. The correct answer is to use global state management via a library like `Redux`. If `Redux` is too difficult for them, they can use a `Context` or at a minimum store their data inside state and pass it as props. `Redux` is greatly preferred.
 
+###### Bad
+
+```tsx
+let profile: Profile | undefined;
+
+const ProfileScreen: React.FC = () => {
+  React.useEffect(() => {
+    (async () => {
+      profile = await getProfile();
+    })();
+  }, []);
+
+  return (
+    <View>
+      <Text>{profile?.username ?? "Loading..."}</Text>
+    </View>
+  );
+};
+```
+
+###### Good
+
+```tsx
+import { useSelector, useDispatch } from "react-redux";
+import { ReduxState, actions } from "./redux";
+
+const ProfileScreen: React.FC = () => {
+  const profile = useSelector((state: ReduxState) => state.github.profile);
+
+  const dispatch = useDispatch();
+  const dispatchGetProfile = React.useCallback(
+    () => dispatch(actions.getProfile()),
+    [dispatch]
+  );
+
+  React.useEffect(() => {
+    dispatchGetProfile();
+  }, []);
+
+  return (
+    <View>
+      <Text>{profile?.username ?? "Loading..."}</Text>
+    </View>
+  );
+};
+```
+
 #### Do not use inline styles
 
 Students should not hardcode styles inline. Instead they should define styles in a `StyleSheet`. This is a reusability issue as well as a refactoring one and often indicates poor decomposition / design.
 
+###### Bad
+
+```tsx
+<Text style={{ fontWeight: 600 }}>Repositories:</Text>
+```
+
+###### Good
+
+```tsx
+const styles = StyleSheet.create({
+  boldText: {
+    fontWeight: 600,
+  },
+});
+```
+
+```tsx
+<Text style={styles.boldText}>Repositories</Text>
+```
+
 #### Combine state hooks if they come from the same source
 
 Using a lot of separate state hooks for data that comes from the same source (ie is always set at the same time) is unnecessarily complex and makes code harder to follow as well as clutters the namespace. It also means they have to call a ton of separate setters to update each piece individually. Instead students should use a single `useState` hook for the entire object, often the user's profile. If they are worried about triggering re-renders, they can look into using the `useMemo` hook.
+
+###### Bad
+
+```tsx
+const [username, setUsername] = React.useState<string>("");
+const [name, setName] = React.useState<string>("");
+const [imageUrl, setImageUrl] = React.useState<string>("");
+
+React.useEffect(() => {
+  (async () => {
+    const profile = await getProfile();
+
+    setUsername(profile.username);
+    setName(profile.name);
+    setImageUrl(profile.imageUrl);
+  })();
+}, []);
+```
+
+###### Good
+
+```tsx
+const [profile, setProfile] = React.useState<Profile | undefined>();
+
+React.useEffect(() => {
+  (async () => {
+    const profile = await getProfile();
+
+    setProfile(profile);
+  })();
+}, []);
+```
 
 #### Define stateful functions inside the component
 
@@ -70,6 +391,24 @@ const ProfileScreen: React.FC<{ navigation: Navigation }> = ({
     </View>
   );
 };
+```
+
+#### Writing code that only works in web
+
+Students seem to be writing code that uses web-only packages such as `css` or regular `html` elements like `<img />`. This is **invalid** React-Native code. They must only use React-Native specific components or their app will work in the web browser but will fail on a device.
+
+###### Bad
+
+```tsx
+<img src={imageUrl} style={styles.image} />
+```
+
+###### Good
+
+```tsx
+import { Image } from "react-native";
+
+<Image source={{ uri: imageUrl }} style={styles.image} />;
 ```
 
 ## General coding issues
