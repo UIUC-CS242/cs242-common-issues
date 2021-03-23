@@ -573,6 +573,73 @@ import moment from "moment";
 const creationDate = moment(profile.creationDate).format("YYYY-MM-DD");
 ```
 
+#### Watch out for strange spacing
+
+Students should be following the `airbnb` style guide. For good opinionated styling, students can use `Prettier`.
+
+###### Bad
+
+```ts
+interface Profile {
+  // prettier-ignore
+  username : string;
+  // prettier-ignore
+  name:string;
+}
+
+// prettier-ignore
+const username = profile? profile.username : "N/A";
+```
+
+```ts
+interface Profile {
+  username: string;
+  name: string;
+}
+
+const username = profile ? profile.username : "N/A";
+```
+
+#### Use optional chaining
+
+Students should take advantage of optional chaining instead of using explicit if statements to verify a chain.
+
+###### Bad
+
+```ts
+let repositories: Repository[] = [];
+
+const data = getProfile();
+
+if (data && data.user && data.user.repositories) {
+  repositories = data.user.repositories.nodes;
+}
+```
+
+###### Good
+
+```ts
+const data = getProfile();
+
+const repositories: Repository[] = data?.user?.repositories?.nodes;
+```
+
+#### Use the nullish coalescing operator
+
+The nullish coalescing operator should be used as a shorthand for the equivalent `!== undefined` or `!== null` check when a default value is desired.
+
+###### Bad
+
+```ts
+const username = profile?.username ? profile?.username : "N/A";
+```
+
+###### Good
+
+```ts
+const username = profile?.username ?? "N/A";
+```
+
 ## TypeScript
 
 #### Do not use the `any` type
@@ -652,71 +719,4 @@ const profile = <Profile>await response.json();
 
 ```ts
 const profile = (await response.json()) as Profile;
-```
-
-#### Watch out for strange spacing
-
-Students should be following the `airbnb` style guide. For good opinionated styling, students can use `Prettier`.
-
-###### Bad
-
-```ts
-interface Profile {
-  // prettier-ignore
-  username : string;
-  // prettier-ignore
-  name:string;
-}
-
-// prettier-ignore
-const username = profile? profile.username : "N/A";
-```
-
-```ts
-interface Profile {
-  username: string;
-  name: string;
-}
-
-const username = profile ? profile.username : "N/A";
-```
-
-#### Use optional chaining
-
-Students should take advantage of optional chaining instead of using explicit if statements to verify a chain.
-
-###### Bad
-
-```ts
-let repositories: Repository[] = [];
-
-const data = getProfile();
-
-if (data && data.user && data.user.repositories) {
-  repositories = data.user.repositories.nodes;
-}
-```
-
-###### Good
-
-```ts
-const data = getProfile();
-
-const repositories: Repository[] = data?.user?.repositories?.nodes;
-```
-
-#### Use the nullish coalescing operator
-
-The nullish coalescing operator should be used as a shorthand for the equivalent `!== undefined` or `!== null` check when a default value is desired.
-
-###### Bad
-
-```ts
-const username = profile?.username ? profile?.username : "N/A";
-```
-
-###### Good
-
-```ts
-const username = profile?.username ?? "N/A";
 ```
