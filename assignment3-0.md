@@ -1,5 +1,60 @@
 # Common issues with Assignment 3.0
 
+## Repository Structure
+
+You should be logically separating your code into directories.
+
+###### Bad
+
+```
+App.tsx
+Repository.tsx
+List.tsx
+api-code.ts
+test.App.js
+package.json
+package-lock.json
+.eslintrc.json
+```
+
+###### Good
+
+```
+src/
+  App.tsx
+  screens/
+    Profile.tsx
+    Repository.tsx
+    Followers.tsx
+    Following.tsx
+  components/
+    User/
+      UserList.tsx
+      UserListItem.tsx
+    Repository/
+      RepositoryList.tsx
+      RepositoryListItem.tsx
+  github-api/
+    query-profile.ts
+
+__mocks__/
+  src/
+    github-api/
+      query-profile.ts
+
+tests/
+  test.api.ts
+  test.repository.ts
+  test.profile.ts
+  test.navigation.ts
+
+.eslintrc.json
+tsconfig.json
+jest.config.ts
+package.json
+package-lock.json
+```
+
 ## Eslint
 
 #### Disabling eslint rules
