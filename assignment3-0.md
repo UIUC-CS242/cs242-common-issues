@@ -2,6 +2,10 @@
 
 ## React
 
+#### Components should have doc comments
+
+Components should have standard doc comments that explain what the component is as well as what the props are
+
 #### Use functional components instead of class components
 
 Students should be using functional components whenever possible.
@@ -70,6 +74,52 @@ const ProfileScreen: React.FC<{ navigation: Navigation }> = ({
 
 ## General coding issues
 
+#### Use `async`/`await` instead of `Promise` chaining
+
+Students should use `async`/`await` over `Promise` chaining. It produces easier to follow code as well as avoids creating unnecessary nested scopes.
+
+###### Bad
+
+```ts
+const getProfile = (): Promise<Profile | string> => {
+  return new Promise<Profile | string>((resolve) => {
+    let errorMessage = "";
+    let responseJson;
+
+    fetch()
+      .then((res) => res.json())
+      .then((res) => {
+        responseJson = res;
+      })
+      .catch((error) => {
+        errorMessage = error.message;
+      })
+      .finally(() => {
+        if (responseJson) {
+          resolve(responseJson);
+        } else {
+          resolve(errorMessage);
+        }
+      });
+  });
+};
+```
+
+###### Good
+
+```ts
+const getProfile = async (): Profile | string => {
+  try {
+    const response = await fetch();
+    const responseJson = await response.json();
+
+    return responseJson;
+  } catch (error) {
+    return error.message ?? "";
+  }
+};
+```
+
 #### Use `const` instead of `let` whenever possible
 
 If a variable is not reassigned, it should always use `const` instead of `let`
@@ -122,13 +172,47 @@ const repoCount = `Repo count ${profile.repoCount}`;
 
 Students should be using object and array spreads whenever possible rather than doing direct mutations.
 
-#### Use `async`/`await` instead of `Promise` chaining
+###### Bad
 
-Students should use `async`/`await` over `Promise` chaining. It produces easier to follow code as well as avoids creating unnecessary nested scopes.
+```ts
+const getProfileWithCount = async () => {
+  let data = await getProfile();
+  data.repoCount = data.repositories.length;
+
+  return data;
+};
+```
+
+###### Good
+
+```ts
+const getProfileWithCount = async () => {
+  const data = await getProfile();
+
+  return {
+    ...data,
+    repoCount: data.repositories.length,
+  };
+};
+```
 
 #### Use a date package
 
 Students should not manually manipulate `Date` objects or timestamps. If they need to format or process a date, they should use a dedicated library like `moment` or `date-fns`. Both libraries have similar functionality but `date-fns` focuses on using the built in `Date` object and functions that accept the date and return the result rather than mutating a class. This is better than using `moment` both for this immutability but also because `moment` is not compatible with `tree-shaking`.
+
+###### Bad
+
+```ts
+const creationDate = profile.creationDate.toISOString().split("T")[0];
+```
+
+###### Good
+
+```ts
+import moment from "moment";
+
+const creationDate = moment(profile.creationDate).format("YYYY-MM-DD");
+```
 
 ## TypeScript
 
@@ -202,15 +286,76 @@ Sometimes a student will need to cast a value into a specific type, a common sit
 ###### Bad
 
 ```ts
-const profile = <Profile>response.json();
+const profile = <Profile>await response.json();
 ```
 
 ###### Good
 
 ```ts
-const profile = response.json() as Profile;
+const profile = (await response.json()) as Profile;
 ```
 
 #### Watch out for strange spacing
 
 Students should be following the `airbnb` style guide. For good opinionated styling, students can use `Prettier`.
+
+###### Bad
+
+```ts
+interface Profile {
+  // prettier-ignore
+  username : string;
+  // prettier-ignore
+  name:string;
+}
+
+// prettier-ignore
+const username = profile? profile.username : "N/A";
+```
+
+```ts
+interface Profile {
+  username: string;
+  name: string;
+}
+
+const username = profile ? profile.username : "N/A";
+```
+
+#### Use optional chaining
+
+Students should take advantage of optional chaining instead of using explicit if statements to verify a chain.
+
+###### Bad
+
+```ts
+let repositories: Repository[] = [];
+
+const data = getProfile();
+
+if (data && data.user && data.user.repositories) {
+  repositories = data.user.repositories.nodes;
+}
+```
+
+###### Good
+
+```ts
+const data = getProfile();
+
+const repositories: Repository[] = data?.user?.repositories?.nodes;
+```
+
+#### Use the nullish coalescing operator
+
+The nullish coalescing operator should be used as a shorthand for the equivalent `!== undefined` or `!== null` check when a default value is desired.
+
+###### Bad
+
+```ts
+const username = profile?.username ? profile?.username : "N/A";
+```
+
+```ts
+const username = profile?.username ?? "N/A";
+```
