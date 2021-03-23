@@ -1,5 +1,21 @@
 # Common issues with Assignment 3.0
 
+## Eslint
+
+#### Disabling eslint rules
+
+Some students disable eslint rules that we required. If they do this, they cannot get credit for eslint on the rubric.
+
+###### Bad
+
+```ts
+/* eslint-disable some rule here */
+```
+
+###### Good
+
+Code that follows our eslint configuration.
+
 ## React
 
 #### Components should have doc comments
