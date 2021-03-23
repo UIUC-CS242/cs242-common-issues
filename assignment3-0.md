@@ -695,6 +695,8 @@ The nullish coalescing operator should be used as a shorthand for the equivalent
 const username = profile?.username ? profile?.username : "N/A";
 ```
 
+###### Good
+
 ```ts
 const username = profile?.username ?? "N/A";
 ```
