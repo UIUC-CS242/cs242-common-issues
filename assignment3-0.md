@@ -29,6 +29,7 @@ src/
     Following.tsx
   components/
     User/
+      UserBio.tsx
       UserList.tsx
       UserListItem.tsx
     Repository/
